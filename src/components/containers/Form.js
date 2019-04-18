@@ -1,118 +1,109 @@
-import React, { Component } from 'react'
-import { database } from '../../firebase'
-import _ from 'lodash'
-import { connect } from 'react-redux'
-import { getNotes, saveNotes } from '../../actions/notesActions'
+import React, { Component } from 'react';
+import { database } from '../../firebase';
+import _ from 'lodash';
+import { connect } from 'react-redux';
+import { getNotes, saveNotes, deleteNote } from '../../actions/notesActions';
 
-
- class Form extends Component {
-    
-    constructor(props){
+class Form extends Component {
+    constructor(props) {
         super(props);
-        //state
+        // state
         this.state = {
             title: '',
             body: '',
-            notes:{}
-        }
-        //bind
-        this.handleChange = this.handleChange.bind(this)
-        this.handleSubmit = this.handleSubmit.bind(this)
-        this.renderNotes = this.renderNotes.bind(this)
+            notes: {}
+        };
+        // bind
+        this.handleChange = this.handleChange.bind(this);
+        this.handleSubmit = this.handleSubmit.bind(this);
+        this.renderNotes = this.renderNotes.bind(this);
     }
 
-    //Handle Change
+    // lifecycle
+    componentDidMount() {
+        this.props.getNotes();
+    }
+
+    // handle change
     handleChange(e) {
         this.setState({
             [e.target.name]: e.target.value
-        })
+        });
     }
 
-    //lifecycle
-    componentDidMount(){
-       this.props.getNotes(); 
-    }
-
-    //Handle submit
-    handleSubmit(e){
-        e.preventDefault()
+    // handle submit
+    handleSubmit(e) {
+        e.preventDefault();
         const note = {
-            title:this.state.title,
-            text:this.state.text
-           
-        }
-        this.props.saveNotes()
+            title: this.state.title,
+            text: this.state.body
+        };
+        this.props.saveNotes(note);
         this.setState({
             title: '',
-            body: ''
-        })
+            text: ''
+        });
     }
-
 
     // render notes
     renderNotes() {
-        return _.map(this.state.notes, (note, key) => {
+        return _.map(this.props.notes, (note, key) => {
             return (
-                <div key={note.uid}>
+                <div key={key}>
                     <h2>{note.title}</h2>
                     <p>{note.text}</p>
+                    <button onClick={()=>this.props.deleteNote(key)}>Delete</button>
                 </div>
             );
         });
     }
-   
-  
-  
-  
-    render() {
-   
-    
-    return (
-      <div className="form-continer">
-         <form onSubmit={this.handleSubmit} >
-            <div className="form-field">
-                <label htmlFor="title">Title</label>
-                <input 
-                    name="title" 
-                    value={this.state.title}
-                    type="text" 
-                    className="field" 
-                    placeholder="...Insert Title"
-                    onChange={this.handleChange}
-                    required
-                />
-            </div>
-            <div className="form-field">
-                <label htmlFor="text">Text</label>
-                <input 
-                    name="text" 
-                    value={this.state.text}
-                    type="text" 
-                    className="field" 
-                    placeholder="...Insert Text"
-                    onChange={this.handleChange}
-                    required
-                />
-            </div>
-            <div className="form-field">
-                <button  className="btn">Submit</button>
-            </div>
-         </form>
-         {this.renderNotes()}
-         
-        
-      </div>
-    )
-  }
-}
 
-const mapStateToProps = (state, ownProps) => {
-    return {
-        notes: state.notes
+    render() {
+        return (
+            <div className="container-fluid">
+                <div className="row">
+                    <div className="col-sm-6 col-sm-offset-3">
+                        <form onSubmit={this.handleSubmit}>
+                            <div className="form-group">
+                                <input
+                                    onChange={this.handleChange}
+                                    value={this.state.title}
+                                    type="text"
+                                    name="title"
+                                    className="form-control no-border"
+                                    placeholder="Title..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <textarea
+                                    onChange={this.handleChange}
+                                    value={this.state.body}
+                                    type="text"
+                                    name="body"
+                                    className="form-control no-border"
+                                    placeholder="Body..."
+                                    required
+                                />
+                            </div>
+
+                            <div className="form-group">
+                                <button className="btn btn-primary col-sm-12">Save</button>
+                            </div>
+                        </form>
+                        {this.renderNotes()}
+                    </div>
+                </div>
+            </div>
+        );
     }
 }
 
+function mapStateToProps(state, ownProps) {
+    return {
+        notes: state.notes
+    };
+}
 
-
-
-export default connect(mapStateToProps, {getNotes, saveNotes}) (Form)
+export default connect(mapStateToProps, { getNotes, saveNotes, deleteNote })(Form);
